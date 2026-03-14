@@ -5,6 +5,8 @@ import {
   type InsertIdeaData,
   type UpdateIdeaData,
 } from "@/db/schemas/ideas.ts";
+import { likes } from "@/db/schemas/likes.ts";
+import { user } from "@/db/schemas/auth.ts";
 
 const userColums = {
   id: true,
@@ -58,5 +60,19 @@ export const ideasRepository = {
       .set(data)
       .where(and(eq(ideas.id, ideaId), eq(ideas.userId, userId)))
       .returning();
+  },
+
+  async likeIdea(ideaId: string, userId: string) {
+    return db
+      .insert(likes)
+      .values({ ideaId, userId })
+      .onConflictDoNothing()
+      .returning();
+  },
+
+  async unlikeIdea(ideaId: string, userId: string) {
+    return db
+      .delete(likes)
+      .where(and(eq(likes.id, ideaId), eq(likes.userId, userId)));
   },
 };

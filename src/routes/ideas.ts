@@ -19,11 +19,9 @@ ideasRoute.get(
   async (c) => {
     const { id } = c.req.param();
     const idea = await ideasRepository.findById(id);
-
     if (!idea) {
       throw new NotFoundException("Idea");
     }
-
     return c.json(idea);
   },
 );
@@ -50,13 +48,10 @@ ideasRoute.delete(
   async (c) => {
     const { id } = c.req.param();
     const user = c.get("user");
-
     const [deletedIdea] = await ideasRepository.delete(id, user.id);
-
     if (!deletedIdea) {
       throw new NotFoundException("Idea");
     }
-
     return c.body(null, 204);
   },
 );
@@ -70,13 +65,43 @@ ideasRoute.patch(
     const { id } = c.req.param();
     const data = c.req.valid("json");
     const user = c.get("user");
-
     const [updatedIdea] = await ideasRepository.update(id, user.id, data);
-
     if (!updatedIdea) {
       throw new NotFoundException("Idea");
     }
+    return c.body(null, 204);
+  },
+);
 
+ideasRoute.put(
+  "/:id/like",
+  authenticate,
+  zValidator("param", z.object({ id: uuid() })),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const user = c.get("user");
+    const idea = await ideasRepository.findById(id);
+    if (!idea) {
+      throw new NotFoundException("Idea");
+    }
+    const [like] = await ideasRepository.likeIdea(id, user.id);
+    console.log(like);
+    return c.body(null, 204);
+  },
+);
+
+ideasRoute.delete(
+  "/:id/like",
+  authenticate,
+  zValidator("param", z.object({ id: uuid() })),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const user = c.get("user");
+    const idea = await ideasRepository.findById(id);
+    if (!idea) {
+      throw new NotFoundException("Idea");
+    }
+    await ideasRepository.unlikeIdea(id, user.id);
     return c.body(null, 204);
   },
 );
