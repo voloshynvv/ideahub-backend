@@ -43,7 +43,7 @@ export class ValidationException extends CustomHttpException {
       400,
       "VALIDATION_ERROR",
       {
-        message: "Validation failed",
+        // message: "Validation failed",
         ...options,
       },
       { errors },

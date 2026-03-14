@@ -1,12 +1,12 @@
 import { relations } from "drizzle-orm";
 import { account, session, user } from "./auth.ts";
-import { ideas } from "./ideas.ts";
+import { posts } from "./posts.ts";
 import { likes } from "./likes.ts";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  ideas: many(ideas),
+  posts: many(posts),
   likes: many(likes),
 }));
 
@@ -24,18 +24,18 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
-export const ideasRelations = relations(ideas, ({ one, many }) => ({
+export const postsRelations = relations(posts, ({ one, many }) => ({
   user: one(user, {
-    fields: [ideas.userId],
+    fields: [posts.userId],
     references: [user.id],
   }),
   likes: many(likes),
 }));
 
 export const likesRelations = relations(likes, ({ one }) => ({
-  idea: one(ideas, {
-    fields: [likes.ideaId],
-    references: [ideas.id],
+  post: one(posts, {
+    fields: [likes.postId],
+    references: [posts.id],
   }),
   user: one(user, {
     fields: [likes.userId],

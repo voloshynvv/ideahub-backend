@@ -4,7 +4,7 @@ import { user } from "./auth.ts";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import type z from "zod";
 
-export const ideas = pgTable("ideas", {
+export const posts = pgTable("posts", {
   id,
   userId: text("user_id")
     .notNull()
@@ -17,14 +17,14 @@ export const ideas = pgTable("ideas", {
   ...timestamps,
 });
 
-export const insertIdeaSchema = createInsertSchema(ideas).pick({
+export const insertPostSchema = createInsertSchema(posts).pick({
   content: true,
   description: true,
   title: true,
   userId: true,
 });
 
-export const updateIdeaSchema = createUpdateSchema(ideas)
+export const updatePostSchema = createUpdateSchema(posts)
   .pick({
     content: true,
     description: true,
@@ -32,5 +32,5 @@ export const updateIdeaSchema = createUpdateSchema(ideas)
   })
   .partial();
 
-export type InsertIdeaData = z.infer<typeof insertIdeaSchema>;
-export type UpdateIdeaData = z.infer<typeof updateIdeaSchema>;
+export type InsertPostData = z.infer<typeof insertPostSchema>;
+export type UpdatePostData = z.infer<typeof updatePostSchema>;

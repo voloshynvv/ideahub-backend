@@ -1,107 +1,107 @@
 import { Hono } from "hono";
 import z, { uuid } from "zod";
-import { insertIdeaSchema, updateIdeaSchema } from "@/db/schemas/ideas.ts";
+import { insertPostSchema, updatePostSchema } from "@/db/schemas/posts.ts";
 import { NotFoundException } from "@/lib/errors.ts";
 import { zValidator } from "@/lib/validator-wrapper.ts";
 import { authenticate } from "@/middlewares/auth.ts";
-import { ideasRepository } from "@/repositories/ideas.repository.ts";
+import { postsRepository } from "@/repositories/posts.repository.ts";
 
-export const ideasRoute = new Hono();
+export const postsRoute = new Hono();
 
-ideasRoute.get("/", async (c) => {
-  const ideas = await ideasRepository.findAll();
-  return c.json(ideas);
+postsRoute.get("/", async (c) => {
+  const posts = await postsRepository.findAll();
+  return c.json(posts);
 });
 
-ideasRoute.get(
+postsRoute.get(
   "/:id",
   zValidator("param", z.object({ id: uuid() })),
   async (c) => {
     const { id } = c.req.param();
-    const idea = await ideasRepository.findById(id);
-    if (!idea) {
-      throw new NotFoundException("Idea");
+    const post = await postsRepository.findById(id);
+    if (!post) {
+      throw new NotFoundException("Post");
     }
-    return c.json(idea);
+    return c.json(post);
   },
 );
 
-ideasRoute.post(
+postsRoute.post(
   "/",
   authenticate,
-  zValidator("json", insertIdeaSchema),
+  zValidator("json", insertPostSchema),
   async (c) => {
     const data = c.req.valid("json");
     const user = c.get("user");
-    const [newIdea] = await ideasRepository.create({
+    const [newPost] = await postsRepository.create({
       ...data,
       userId: user.id,
     });
-    return c.json({ id: newIdea.id }, 201);
+    return c.json({ id: newPost.id }, 201);
   },
 );
 
-ideasRoute.delete(
+postsRoute.delete(
   "/:id",
   authenticate,
   zValidator("param", z.object({ id: uuid() })),
   async (c) => {
     const { id } = c.req.param();
     const user = c.get("user");
-    const [deletedIdea] = await ideasRepository.delete(id, user.id);
-    if (!deletedIdea) {
-      throw new NotFoundException("Idea");
+    const [deletedPost] = await postsRepository.delete(id, user.id);
+    if (!deletedPost) {
+      throw new NotFoundException("Post");
     }
     return c.body(null, 204);
   },
 );
 
-ideasRoute.patch(
+postsRoute.patch(
   "/:id",
   authenticate,
   zValidator("param", z.object({ id: uuid() })),
-  zValidator("json", updateIdeaSchema),
+  zValidator("json", updatePostSchema),
   async (c) => {
     const { id } = c.req.param();
     const data = c.req.valid("json");
     const user = c.get("user");
-    const [updatedIdea] = await ideasRepository.update(id, user.id, data);
-    if (!updatedIdea) {
-      throw new NotFoundException("Idea");
+    const [updatedPost] = await postsRepository.update(id, user.id, data);
+    if (!updatedPost) {
+      throw new NotFoundException("Post");
     }
     return c.body(null, 204);
   },
 );
 
-ideasRoute.put(
+postsRoute.put(
   "/:id/like",
   authenticate,
   zValidator("param", z.object({ id: uuid() })),
   async (c) => {
     const { id } = c.req.valid("param");
     const user = c.get("user");
-    const idea = await ideasRepository.findById(id);
-    if (!idea) {
-      throw new NotFoundException("Idea");
+    const post = await postsRepository.findById(id);
+    if (!post) {
+      throw new NotFoundException("Post");
     }
-    const [like] = await ideasRepository.likeIdea(id, user.id);
+    const [like] = await postsRepository.likePost(id, user.id);
     console.log(like);
     return c.body(null, 204);
   },
 );
 
-ideasRoute.delete(
+postsRoute.delete(
   "/:id/like",
   authenticate,
   zValidator("param", z.object({ id: uuid() })),
   async (c) => {
     const { id } = c.req.valid("param");
     const user = c.get("user");
-    const idea = await ideasRepository.findById(id);
-    if (!idea) {
-      throw new NotFoundException("Idea");
+    const post = await postsRepository.findById(id);
+    if (!post) {
+      throw new NotFoundException("Post");
     }
-    await ideasRepository.unlikeIdea(id, user.id);
+    await postsRepository.unlikePost(id, user.id);
     return c.body(null, 204);
   },
 );
