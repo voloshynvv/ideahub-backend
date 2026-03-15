@@ -7,6 +7,8 @@ import { authenticate } from "@/middlewares/auth.ts";
 import { postsRepository } from "@/repositories/posts.repository.ts";
 import { insertCommentSchema } from "@/db/schemas/comments.ts";
 import { commentsRepository } from "@/repositories/comments.repository.ts";
+import { insertReactionSchema } from "@/db/schemas/reactions.ts";
+import { reactionsRepository } from "@/repositories/reactions.repository.ts";
 
 export const postsRoute = new Hono();
 
@@ -76,34 +78,40 @@ postsRoute.patch(
 );
 
 postsRoute.put(
-  "/:id/like",
+  "/:id/reactions",
   authenticate,
   zValidator("param", z.object({ id: uuid() })),
+  zValidator("json", insertReactionSchema),
   async (c) => {
     const { id } = c.req.valid("param");
+    const { name } = c.req.valid("json");
     const user = c.get("user");
     const post = await postsRepository.findById(id);
     if (!post) {
       throw new NotFoundException("Post");
     }
-    const [like] = await postsRepository.likePost(id, user.id);
-    console.log(like);
+
+    await reactionsRepository.add({
+      postId: id,
+      userId: user.id,
+      name,
+    });
+
     return c.body(null, 204);
   },
 );
 
 postsRoute.delete(
-  "/:id/like",
+  "/:postId/reactions/:reactionId",
   authenticate,
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ postId: uuid(), reactionId: uuid() })),
   async (c) => {
-    const { id } = c.req.valid("param");
+    const { postId, reactionId } = c.req.valid("param");
     const user = c.get("user");
-    const post = await postsRepository.findById(id);
-    if (!post) {
-      throw new NotFoundException("Post");
+    const [deletedReaction] = await reactionsRepository.remove(postId, user.id);
+    if (!deletedReaction) {
+      throw new NotFoundException("Reaction");
     }
-    await postsRepository.unlikePost(id, user.id);
     return c.body(null, 204);
   },
 );
