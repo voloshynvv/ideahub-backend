@@ -16,10 +16,12 @@ export const reactionsRepository = {
       .returning();
   },
 
-  async remove(userId: string, reactionId: string) {
+  async remove(reactionName: string, userId: string) {
     return db
       .delete(reactions)
-      .where(and(eq(reactions.userId, userId), eq(reactions.id, reactionId)))
+      .where(
+        and(eq(reactions.name, reactionName), eq(reactions.userId, userId)),
+      )
       .returning();
   },
 

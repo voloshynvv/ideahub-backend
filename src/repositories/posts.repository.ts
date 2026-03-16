@@ -21,7 +21,6 @@ export const postsRepository = {
   }) {
     const { userId, ...postColumns } = getTableColumns(posts);
     const offset = (page - 1) * limit;
-
     const rows = await db
       .select({
         ...postColumns,
@@ -59,7 +58,6 @@ export const postsRepository = {
 
   async findById(postId: string) {
     const { userId, ...postColumns } = getTableColumns(posts);
-
     const [post] = await db
       .select({
         ...postColumns,

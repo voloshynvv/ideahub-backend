@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import z, { uuid } from "zod";
+import z from "zod";
 import { insertPostSchema, updatePostSchema } from "@/db/schemas/posts.ts";
 import { NotFoundException } from "@/lib/errors.ts";
 import { zValidator } from "@/lib/validator-wrapper.ts";
@@ -31,7 +31,7 @@ postsRoute.get(
 
 postsRoute.get(
   "/:id",
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ id: z.uuid() })),
   async (c) => {
     const { id } = c.req.param();
     const post = await postsRepository.findById(id);
@@ -60,7 +60,7 @@ postsRoute.post(
 postsRoute.delete(
   "/:id",
   authenticate,
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ id: z.uuid() })),
   async (c) => {
     const { id } = c.req.param();
     const user = c.get("user");
@@ -75,7 +75,7 @@ postsRoute.delete(
 postsRoute.patch(
   "/:id",
   authenticate,
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", updatePostSchema),
   async (c) => {
     const { id } = c.req.param();
@@ -92,7 +92,7 @@ postsRoute.patch(
 postsRoute.put(
   "/:id/reactions",
   authenticate,
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", insertReactionSchema),
   async (c) => {
     const { id } = c.req.valid("param");
@@ -114,13 +114,16 @@ postsRoute.put(
 );
 
 postsRoute.delete(
-  "/:postId/reactions/:reactionId",
+  "/:postId/reactions/:reactionName",
   authenticate,
-  zValidator("param", z.object({ postId: uuid(), reactionId: uuid() })),
+  zValidator("param", z.object({ postId: z.uuid(), reactionName: z.string() })),
   async (c) => {
-    const { postId, reactionId } = c.req.valid("param");
+    const { reactionName } = c.req.valid("param");
     const user = c.get("user");
-    const [deletedReaction] = await reactionsRepository.remove(postId, user.id);
+    const [deletedReaction] = await reactionsRepository.remove(
+      reactionName,
+      user.id,
+    );
     if (!deletedReaction) {
       throw new NotFoundException("Reaction");
     }
@@ -131,7 +134,7 @@ postsRoute.delete(
 postsRoute.post(
   "/:id/comments",
   authenticate,
-  zValidator("param", z.object({ id: uuid() })),
+  zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", insertCommentSchema),
   async (c) => {
     const { id } = c.req.valid("param");
@@ -153,7 +156,7 @@ postsRoute.post(
 postsRoute.delete(
   "/:postId/comments/:commentId",
   authenticate,
-  zValidator("param", z.object({ postId: uuid(), commentId: uuid() })),
+  zValidator("param", z.object({ postId: z.uuid(), commentId: z.uuid() })),
   async (c) => {
     const { commentId } = c.req.valid("param");
     const user = c.get("user");
