@@ -12,10 +12,22 @@ import { reactionsRepository } from "@/repositories/reactions.repository.ts";
 
 export const postsRoute = new Hono();
 
-postsRoute.get("/", async (c) => {
-  const posts = await postsRepository.findAll();
-  return c.json(posts);
-});
+postsRoute.get(
+  "/",
+  zValidator(
+    "query",
+    z.object({
+      q: z.string().optional(),
+      page: z.coerce.number().int().positive().default(1),
+      limit: z.coerce.number().int().positive().default(10),
+    }),
+  ),
+  async (c) => {
+    const { q, page, limit } = c.req.valid("query");
+    const posts = await postsRepository.findAll({ q, page, limit });
+    return c.json(posts);
+  },
+);
 
 postsRoute.get(
   "/:id",

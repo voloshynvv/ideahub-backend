@@ -1,9 +1,11 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, count } from "drizzle-orm";
 import { db } from "@/db/index.ts";
 import {
   reactions,
   type InsertReactionValues,
 } from "@/db/schemas/reactions.ts";
+
+export type Reactions = Record<string, number>;
 
 export const reactionsRepository = {
   async add(values: InsertReactionValues) {
@@ -19,5 +21,46 @@ export const reactionsRepository = {
       .delete(reactions)
       .where(and(eq(reactions.userId, userId), eq(reactions.id, reactionId)))
       .returning();
+  },
+
+  async getReactionsByPostId(postId: string) {
+    const rows = await db
+      .select({
+        postId: reactions.postId,
+        name: reactions.name,
+        count: count(reactions.id),
+      })
+      .from(reactions)
+      .where(eq(reactions.postId, postId))
+      .groupBy(reactions.postId, reactions.name);
+
+    const result: Reactions = {};
+    for (const row of rows) {
+      result[row.name] = row.count;
+    }
+    return result;
+  },
+
+  async getReactionsByPostIds(postIds: string[]) {
+    const rows = await db
+      .select({
+        postId: reactions.postId,
+        name: reactions.name,
+        count: count(reactions.id),
+      })
+      .from(reactions)
+      .where(inArray(reactions.postId, postIds))
+      .groupBy(reactions.postId, reactions.name);
+
+    const result: Record<string, Reactions> = {};
+
+    for (const row of rows) {
+      if (!result[row.postId]) {
+        result[row.postId] = {};
+      }
+      result[row.postId][row.name] = row.count;
+    }
+
+    return result;
   },
 };

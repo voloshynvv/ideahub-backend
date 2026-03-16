@@ -1,4 +1,4 @@
-import { and, desc, getTableColumns, eq, sql, count } from "drizzle-orm";
+import { and, or, desc, getTableColumns, eq, ilike } from "drizzle-orm";
 import { db } from "@/db/index.ts";
 import {
   posts,
@@ -7,13 +7,22 @@ import {
 } from "@/db/schemas/posts.ts";
 import { comments } from "@/db/schemas/comments.ts";
 import { user } from "@/db/schemas/auth.ts";
+import { reactionsRepository } from "./reactions.repository.ts";
 
 export const postsRepository = {
-  async findAll() {
-    // omit userId from postColumns
+  async findAll({
+    q,
+    page,
+    limit,
+  }: {
+    q?: string;
+    page: number;
+    limit: number;
+  }) {
     const { userId, ...postColumns } = getTableColumns(posts);
+    const offset = (page - 1) * limit;
 
-    return db
+    const rows = await db
       .select({
         ...postColumns,
         commentsCount: db.$count(comments, eq(comments.postId, posts.id)),
@@ -25,13 +34,33 @@ export const postsRepository = {
       })
       .from(posts)
       .innerJoin(user, eq(posts.userId, user.id))
-      .orderBy(desc(posts.createdAt));
+      .where(
+        q
+          ? or(ilike(posts.title, `%${q}%`), ilike(posts.description, `%${q}%`))
+          : undefined,
+      )
+      .orderBy(desc(posts.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    if (rows.length === 0) {
+      return [];
+    }
+
+    const postIds = rows.map((row) => row.id);
+    const reactionsByPostId =
+      await reactionsRepository.getReactionsByPostIds(postIds);
+
+    return rows.map((post) => ({
+      ...post,
+      reactions: reactionsByPostId[post.id] ?? {},
+    }));
   },
 
   async findById(postId: string) {
     const { userId, ...postColumns } = getTableColumns(posts);
 
-    const post = await db
+    const [post] = await db
       .select({
         ...postColumns,
         commentsCount: db.$count(comments, eq(comments.postId, posts.id)),
@@ -50,7 +79,8 @@ export const postsRepository = {
       return null;
     }
 
-    return post;
+    const reactions = await reactionsRepository.getReactionsByPostId(postId);
+    return { ...post, reactions };
   },
 
   async create(data: InsertPostData) {
