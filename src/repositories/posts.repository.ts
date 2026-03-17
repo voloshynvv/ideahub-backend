@@ -12,10 +12,12 @@ export const postsRepository = {
     q,
     page,
     limit,
+    userId,
   }: {
     q?: string;
     page: number;
     limit: number;
+    userId?: string;
   }) {
     const rows = await db.query.posts.findMany({
       with: {
@@ -37,8 +39,10 @@ export const postsRepository = {
     });
 
     const postIds = rows.map((row) => row.id);
-    const reactionsByPostId =
-      await reactionsRepository.getPostsReactions(postIds);
+    const reactionsByPostId = await reactionsRepository.getPostsReactions(
+      postIds,
+      userId,
+    );
 
     return rows.map((post) => ({
       ...post,
@@ -46,7 +50,7 @@ export const postsRepository = {
     }));
   },
 
-  async findById(postId: string) {
+  async findById(postId: string, userId?: string) {
     const post = await db.query.posts.findFirst({
       with: {
         user: {
@@ -65,7 +69,10 @@ export const postsRepository = {
       return null;
     }
 
-    const reactions = await reactionsRepository.getPostsReactions([postId]);
+    const reactions = await reactionsRepository.getPostsReactions(
+      [postId],
+      userId,
+    );
 
     return {
       ...post,

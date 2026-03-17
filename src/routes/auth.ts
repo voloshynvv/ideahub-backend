@@ -1,8 +1,8 @@
-import { Hono } from "hono";
 import { auth } from "@/lib/auth.ts";
+import { createRouter } from "@/lib/create-app.ts";
 
-export const authRoute = new Hono();
+export const authRoutes = createRouter();
 
-authRoute.on(["POST", "GET"], "/*", (c) => {
+authRoutes.on(["POST", "GET"], "/*", (c) => {
   return auth.handler(c.req.raw);
 });

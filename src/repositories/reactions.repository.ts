@@ -1,4 +1,4 @@
-import { and, eq, inArray, count, asc, sql } from "drizzle-orm";
+import { and, eq, inArray, count, asc, sql, min } from "drizzle-orm";
 import { db } from "@/db/index.ts";
 import {
   reactions,
@@ -8,10 +8,11 @@ import {
 type Reaction = {
   name: string;
   count: number;
+  hasReacted: boolean;
 };
 
 const mapPostsReactions = (
-  data: { postId: string; name: string; count: number }[],
+  data: { postId: string; name: string; count: number; hasReacted: boolean }[],
 ) => {
   const result: Record<string, Reaction[]> = {};
 
@@ -23,6 +24,7 @@ const mapPostsReactions = (
     result[reaction.postId].push({
       name: reaction.name,
       count: reaction.count,
+      hasReacted: reaction.hasReacted,
     });
   }
 
@@ -51,14 +53,18 @@ export const reactionsRepository = {
       .returning();
   },
 
-  async getPostsReactions(postIds: string[]) {
-    const firstReactionAt = sql`min(${reactions.createdAt})`;
+  async getPostsReactions(postIds: string[], userId?: string) {
+    const firstReactionAt = min(reactions.createdAt);
+    const hasReactedExpression = userId
+      ? sql<boolean>`bool_or(${reactions.userId} = ${userId})`
+      : sql<boolean>`false`;
 
     const rows = await db
       .select({
         postId: reactions.postId,
         name: reactions.name,
         count: count(reactions.name),
+        hasReacted: hasReactedExpression,
       })
       .from(reactions)
       .where(inArray(reactions.postId, postIds))

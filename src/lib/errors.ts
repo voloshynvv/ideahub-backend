@@ -24,6 +24,15 @@ export class CustomHttpException extends HTTPException {
   }
 }
 
+export class UnauthorizedException extends CustomHttpException {
+  constructor(message?: string, options?: HTTPExceptionOptions) {
+    super(401, "UNAUTHORIZED", {
+      message: message ?? "Unauthorized",
+      ...options,
+    });
+  }
+}
+
 export class NotFoundException extends CustomHttpException {
   constructor(resource: string, options?: HTTPExceptionOptions) {
     super(404, "NOT_FOUND", {
@@ -43,7 +52,6 @@ export class ValidationException extends CustomHttpException {
       400,
       "VALIDATION_ERROR",
       {
-        // message: "Validation failed",
         ...options,
       },
       { errors },

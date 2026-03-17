@@ -1,18 +1,18 @@
-import { Hono } from "hono";
 import z from "zod";
 import { insertPostSchema, updatePostSchema } from "@/db/schemas/posts.ts";
 import { NotFoundException } from "@/lib/errors.ts";
 import { zValidator } from "@/lib/validator-wrapper.ts";
-import { authenticate } from "@/middlewares/auth.ts";
 import { postsRepository } from "@/repositories/posts.repository.ts";
 import { insertCommentSchema } from "@/db/schemas/comments.ts";
 import { commentsRepository } from "@/repositories/comments.repository.ts";
 import { insertReactionSchema } from "@/db/schemas/reactions.ts";
 import { reactionsRepository } from "@/repositories/reactions.repository.ts";
+import { createRouter } from "@/lib/create-app.ts";
+import { ensureAuth } from "@/middlewares/auth.ts";
 
-export const postsRoute = new Hono();
+export const postRoutes = createRouter();
 
-postsRoute.get(
+postRoutes.get(
   "/",
   zValidator(
     "query",
@@ -24,17 +24,24 @@ postsRoute.get(
   ),
   async (c) => {
     const { q, page, limit } = c.req.valid("query");
-    const posts = await postsRepository.findAll({ q, page, limit });
+    const user = c.get("user");
+    const posts = await postsRepository.findAll({
+      q,
+      page,
+      limit,
+      userId: user?.id,
+    });
     return c.json(posts);
   },
 );
 
-postsRoute.get(
+postRoutes.get(
   "/:id",
   zValidator("param", z.object({ id: z.uuid() })),
   async (c) => {
+    const user = c.get("user");
     const { id } = c.req.param();
-    const post = await postsRepository.findById(id);
+    const post = await postsRepository.findById(id, user?.id);
     if (!post) {
       throw new NotFoundException("Post");
     }
@@ -42,9 +49,9 @@ postsRoute.get(
   },
 );
 
-postsRoute.post(
+postRoutes.post(
   "/",
-  authenticate,
+  ensureAuth,
   zValidator("json", insertPostSchema),
   async (c) => {
     const data = c.req.valid("json");
@@ -57,9 +64,9 @@ postsRoute.post(
   },
 );
 
-postsRoute.delete(
+postRoutes.delete(
   "/:id",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ id: z.uuid() })),
   async (c) => {
     const { id } = c.req.param();
@@ -72,9 +79,9 @@ postsRoute.delete(
   },
 );
 
-postsRoute.patch(
+postRoutes.patch(
   "/:id",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", updatePostSchema),
   async (c) => {
@@ -89,9 +96,9 @@ postsRoute.patch(
   },
 );
 
-postsRoute.put(
+postRoutes.put(
   "/:id/reactions",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", insertReactionSchema),
   async (c) => {
@@ -99,6 +106,7 @@ postsRoute.put(
     const { name } = c.req.valid("json");
     const user = c.get("user");
     const post = await postsRepository.findById(id);
+
     if (!post) {
       throw new NotFoundException("Post");
     }
@@ -113,9 +121,9 @@ postsRoute.put(
   },
 );
 
-postsRoute.delete(
+postRoutes.delete(
   "/:postId/reactions/:reactionName",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ postId: z.uuid(), reactionName: z.string() })),
   async (c) => {
     const { reactionName, postId } = c.req.valid("param");
@@ -132,9 +140,9 @@ postsRoute.delete(
   },
 );
 
-postsRoute.post(
+postRoutes.post(
   "/:id/comments",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ id: z.uuid() })),
   zValidator("json", insertCommentSchema),
   async (c) => {
@@ -154,9 +162,9 @@ postsRoute.post(
   },
 );
 
-postsRoute.delete(
+postRoutes.delete(
   "/:postId/comments/:commentId",
-  authenticate,
+  ensureAuth,
   zValidator("param", z.object({ postId: z.uuid(), commentId: z.uuid() })),
   async (c) => {
     const { commentId } = c.req.valid("param");

@@ -1,24 +1,40 @@
-import { auth } from "@/lib/auth.ts";
-import type { User } from "better-auth";
+import { auth, type Session, type User } from "@/lib/auth.ts";
+import type { AppBindings } from "@/lib/create-app.ts";
+import { UnauthorizedException } from "@/lib/errors.ts";
 import { createMiddleware } from "hono/factory";
 
-type AuthenticateMiddleware = {
-  Variables: {
-    user: User;
-  };
-};
+export const getAuth = createMiddleware<AppBindings>(async (c, next) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
 
-export const authenticate = createMiddleware<AuthenticateMiddleware>(
+  if (!session) {
+    c.set("user", null);
+    c.set("session", null);
+    await next();
+    return;
+  }
+
+  c.set("user", session.user);
+  c.set("session", session.session);
+  await next();
+});
+
+type EnsureAuthBindings = AppBindings & {
+  Variables: { user: User; session: Session };
+};
+export const ensureAuth = createMiddleware<EnsureAuthBindings>(
   async (c, next) => {
-    try {
-      const session = await auth.api.getSession({ headers: c.req.raw.headers });
-      if (!session) {
-        return c.json({ error: "Unauthorized" }, 401);
-      }
-      c.set("user", session.user);
-      await next();
-    } catch (e) {
-      return c.json({ error: "Unauthorized" }, 401);
+    const user = c.get("user");
+    const session = c.get("session");
+
+    if (!user || !session) {
+      throw new UnauthorizedException();
     }
+
+    c.set("user", user);
+    c.set("session", session);
+
+    await next();
   },
 );
