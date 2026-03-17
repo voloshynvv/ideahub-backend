@@ -118,9 +118,10 @@ postsRoute.delete(
   authenticate,
   zValidator("param", z.object({ postId: z.uuid(), reactionName: z.string() })),
   async (c) => {
-    const { reactionName } = c.req.valid("param");
+    const { reactionName, postId } = c.req.valid("param");
     const user = c.get("user");
     const [deletedReaction] = await reactionsRepository.remove(
+      postId,
       reactionName,
       user.id,
     );

@@ -1,11 +1,33 @@
-import { and, eq, inArray, count } from "drizzle-orm";
+import { and, eq, inArray, count, asc, sql } from "drizzle-orm";
 import { db } from "@/db/index.ts";
 import {
   reactions,
   type InsertReactionValues,
 } from "@/db/schemas/reactions.ts";
 
-export type Reactions = Record<string, number>;
+type Reaction = {
+  name: string;
+  count: number;
+};
+
+const mapPostsReactions = (
+  data: { postId: string; name: string; count: number }[],
+) => {
+  const result: Record<string, Reaction[]> = {};
+
+  for (const reaction of data) {
+    if (!result[reaction.postId]) {
+      result[reaction.postId] = [];
+    }
+
+    result[reaction.postId].push({
+      name: reaction.name,
+      count: reaction.count,
+    });
+  }
+
+  return result;
+};
 
 export const reactionsRepository = {
   async add(values: InsertReactionValues) {
@@ -16,53 +38,37 @@ export const reactionsRepository = {
       .returning();
   },
 
-  async remove(reactionName: string, userId: string) {
+  async remove(postId: string, reactionName: string, userId: string) {
     return db
       .delete(reactions)
       .where(
-        and(eq(reactions.name, reactionName), eq(reactions.userId, userId)),
+        and(
+          eq(reactions.name, reactionName),
+          eq(reactions.userId, userId),
+          eq(reactions.postId, postId),
+        ),
       )
       .returning();
   },
 
-  async getReactionsByPostId(postId: string) {
+  async getPostsReactions(postIds: string[]) {
+    const firstReactionAt = sql`min(${reactions.createdAt})`;
+
     const rows = await db
       .select({
         postId: reactions.postId,
         name: reactions.name,
-        count: count(reactions.id),
-      })
-      .from(reactions)
-      .where(eq(reactions.postId, postId))
-      .groupBy(reactions.postId, reactions.name);
-
-    const result: Reactions = {};
-    for (const row of rows) {
-      result[row.name] = row.count;
-    }
-    return result;
-  },
-
-  async getReactionsByPostIds(postIds: string[]) {
-    const rows = await db
-      .select({
-        postId: reactions.postId,
-        name: reactions.name,
-        count: count(reactions.id),
+        count: count(reactions.name),
       })
       .from(reactions)
       .where(inArray(reactions.postId, postIds))
-      .groupBy(reactions.postId, reactions.name);
+      .groupBy(reactions.postId, reactions.name)
+      .orderBy(
+        asc(reactions.postId),
+        asc(firstReactionAt),
+        asc(reactions.name),
+      );
 
-    const result: Record<string, Reactions> = {};
-
-    for (const row of rows) {
-      if (!result[row.postId]) {
-        result[row.postId] = {};
-      }
-      result[row.postId][row.name] = row.count;
-    }
-
-    return result;
+    return mapPostsReactions(rows);
   },
 };
