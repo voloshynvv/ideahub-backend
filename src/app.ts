@@ -1,6 +1,6 @@
-import { createApp } from "./lib/create-app.ts";
-import { authRoutes } from "./routes/auth.ts";
-import { postRoutes } from "./routes/posts.ts";
+import { createApp } from "./lib/create-app.js";
+import { authRoutes } from "./routes/auth.js";
+import { postRoutes } from "./routes/posts.js";
 
 export const app = createApp().basePath("/api");
 app.route("/auth", authRoutes);

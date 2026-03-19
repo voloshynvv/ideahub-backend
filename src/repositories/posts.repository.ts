@@ -1,11 +1,11 @@
 import { and, or, desc, eq, ilike } from "drizzle-orm";
-import { db } from "@/db/index.ts";
+import { db } from "@/db/index.js";
 import {
   posts,
   type InsertPostData,
   type UpdatePostData,
-} from "@/db/schemas/posts.ts";
-import { reactionsRepository } from "./reactions.repository.ts";
+} from "@/db/schemas/posts.js";
+import { reactionsRepository } from "./reactions.repository.js";
 
 export const postsRepository = {
   async findAll({

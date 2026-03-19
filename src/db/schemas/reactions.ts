@@ -1,7 +1,7 @@
 import { pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
-import { id, timestamps } from "../schema-helpers.ts";
-import { posts } from "./posts.ts";
-import { user } from "./auth.ts";
+import { id, timestamps } from "../schema-helpers.js";
+import { posts } from "./posts.js";
+import { user } from "./auth.js";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 

@@ -1,6 +1,6 @@
-import { auth, type Session, type User } from "@/lib/auth.ts";
-import type { AppBindings } from "@/lib/create-app.ts";
-import { UnauthorizedException } from "@/lib/errors.ts";
+import { auth, type Session, type User } from "@/lib/auth.js";
+import type { AppBindings } from "@/lib/create-app.js";
+import { UnauthorizedException } from "@/lib/errors.js";
 import { createMiddleware } from "hono/factory";
 
 export const getAuth = createMiddleware<AppBindings>(async (c, next) => {

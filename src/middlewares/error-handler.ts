@@ -1,5 +1,5 @@
 import type { ErrorHandler } from "hono";
-import { CustomHttpException } from "@/lib/errors.ts";
+import { CustomHttpException } from "@/lib/errors.js";
 
 export const errorHandler: ErrorHandler = async (error, c) => {
   console.error("[errorHandler]", error);

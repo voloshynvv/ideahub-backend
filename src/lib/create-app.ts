@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import type { Session, User } from "./auth.ts";
-import notFound from "@/middlewares/not-found.ts";
-import { errorHandler } from "@/middlewares/error-handler.ts";
-import { getAuth } from "@/middlewares/auth.ts";
+import type { Session, User } from "./auth.js";
+import notFound from "@/middlewares/not-found.js";
+import { errorHandler } from "@/middlewares/error-handler.js";
+import { getAuth } from "@/middlewares/auth.js";
 
 export type AppBindings = {
   Variables: {

@@ -1,9 +1,9 @@
-import { db } from "@/db/index.ts";
+import { db } from "@/db/index.js";
 import {
   comments,
   type InsertCommentValues,
   type UpdateCommentValues,
-} from "@/db/schemas/comments.ts";
+} from "@/db/schemas/comments.js";
 import { and, eq } from "drizzle-orm";
 
 export const commentsRepository = {

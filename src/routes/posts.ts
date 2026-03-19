@@ -1,14 +1,14 @@
 import z from "zod";
-import { insertPostSchema, updatePostSchema } from "@/db/schemas/posts.ts";
-import { NotFoundException } from "@/lib/errors.ts";
-import { zValidator } from "@/lib/validator-wrapper.ts";
-import { postsRepository } from "@/repositories/posts.repository.ts";
-import { insertCommentSchema } from "@/db/schemas/comments.ts";
-import { commentsRepository } from "@/repositories/comments.repository.ts";
-import { insertReactionSchema } from "@/db/schemas/reactions.ts";
-import { reactionsRepository } from "@/repositories/reactions.repository.ts";
-import { createRouter } from "@/lib/create-app.ts";
-import { ensureAuth } from "@/middlewares/auth.ts";
+import { insertPostSchema, updatePostSchema } from "@/db/schemas/posts.js";
+import { NotFoundException } from "@/lib/errors.js";
+import { zValidator } from "@/lib/validator-wrapper.js";
+import { postsRepository } from "@/repositories/posts.repository.js";
+import { insertCommentSchema } from "@/db/schemas/comments.js";
+import { commentsRepository } from "@/repositories/comments.repository.js";
+import { insertReactionSchema } from "@/db/schemas/reactions.js";
+import { reactionsRepository } from "@/repositories/reactions.repository.js";
+import { createRouter } from "@/lib/create-app.js";
+import { ensureAuth } from "@/middlewares/auth.js";
 
 export const postRoutes = createRouter();
 

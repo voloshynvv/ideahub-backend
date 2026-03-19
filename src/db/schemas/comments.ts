@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { id, timestamps } from "../schema-helpers.ts";
-import { posts } from "./posts.ts";
-import { user } from "./auth.ts";
+import { id, timestamps } from "../schema-helpers.js";
+import { posts } from "./posts.js";
+import { user } from "./auth.js";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 
 export const comments = pgTable("comments", {

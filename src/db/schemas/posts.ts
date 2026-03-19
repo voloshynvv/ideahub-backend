@@ -1,6 +1,6 @@
 import { pgTable, text } from "drizzle-orm/pg-core";
-import { id, timestamps } from "@/db/schema-helpers.ts";
-import { user } from "./auth.ts";
+import { id, timestamps } from "@/db/schema-helpers.js";
+import { user } from "./auth.js";
 import { createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import type z from "zod";
 

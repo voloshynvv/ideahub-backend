@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { ValidationTargets } from "hono";
 import { zValidator as zv } from "@hono/zod-validator";
-import { ValidationException } from "./errors.ts";
+import { ValidationException } from "./errors.js";
 
 export const zValidator = <
   T extends z.ZodSchema,

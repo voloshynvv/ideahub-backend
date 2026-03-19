@@ -1,9 +1,9 @@
 import { and, eq, inArray, count, asc, sql, min } from "drizzle-orm";
-import { db } from "@/db/index.ts";
+import { db } from "@/db/index.js";
 import {
   reactions,
   type InsertReactionValues,
-} from "@/db/schemas/reactions.ts";
+} from "@/db/schemas/reactions.js";
 
 type Reaction = {
   name: string;

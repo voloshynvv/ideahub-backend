@@ -1,8 +1,8 @@
 import { relations } from "drizzle-orm";
-import { account, session, user } from "./auth.ts";
-import { posts } from "./posts.ts";
-import { comments } from "./comments.ts";
-import { reactions } from "./reactions.ts";
+import { account, session, user } from "./auth.js";
+import { posts } from "./posts.js";
+import { comments } from "./comments.js";
+import { reactions } from "./reactions.js";
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
