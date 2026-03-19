@@ -27,7 +27,7 @@ export const createApp = () => {
     cors({
       origin: env.FRONTEND_URL,
       allowHeaders: ["Content-Type", "Authorization"],
-      allowMethods: ["POST", "GET", "OPTIONS"],
+      allowMethods: ["POST", "GET", "OPTIONS", "DELETE", "PUT", "PATCH"],
       exposeHeaders: ["Content-Length"],
       maxAge: 600,
       credentials: true,
