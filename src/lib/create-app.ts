@@ -3,6 +3,8 @@ import type { Session, User } from "./auth.js";
 import notFound from "@/middlewares/not-found.js";
 import { errorHandler } from "@/middlewares/error-handler.js";
 import { getAuth } from "@/middlewares/auth.js";
+import { cors } from "hono/cors";
+import { env } from "@/config.js";
 
 export type AppBindings = {
   Variables: {
@@ -20,6 +22,17 @@ export const createRouter = () => {
 
 export const createApp = () => {
   const app = createRouter();
+  app.use(
+    "*",
+    cors({
+      origin: env.FRONTEND_URL,
+      allowHeaders: ["Content-Type", "Authorization"],
+      allowMethods: ["POST", "GET", "OPTIONS"],
+      exposeHeaders: ["Content-Length"],
+      maxAge: 600,
+      credentials: true,
+    }),
+  );
   app.use(getAuth);
   app.notFound(notFound);
   app.onError(errorHandler);
