@@ -1,4 +1,3 @@
-import { openAPI } from "better-auth/plugins";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db/index.js";
@@ -8,8 +7,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+    },
+  },
   trustedOrigins: [env.FRONTEND_URL],
-  plugins: [openAPI()],
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
