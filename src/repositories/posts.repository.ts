@@ -30,9 +30,7 @@ export const postsRepository = {
         },
         reactions: true,
       },
-      where: q
-        ? or(ilike(posts.title, `%${q}%`), ilike(posts.description, `%${q}%`))
-        : undefined,
+      where: q ? ilike(posts.title, `%${q}%`) : undefined,
       orderBy: desc(posts.createdAt),
       limit: limit,
       offset: (page - 1) * limit,
@@ -80,7 +78,7 @@ export const postsRepository = {
     };
   },
 
-  async create(data: InsertPostData) {
+  async create(data: InsertPostData & { userId: string }) {
     return db.insert(posts).values(data).returning();
   },
 

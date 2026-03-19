@@ -11,24 +11,23 @@ export const posts = pgTable("posts", {
     .references(() => user.id, { onDelete: "cascade" }),
 
   title: text("title").notNull(),
-  description: text("description").notNull(),
   content: text("content").notNull(),
+  tag: text("tag"),
 
   ...timestamps,
 });
 
 export const insertPostSchema = createInsertSchema(posts).pick({
   content: true,
-  description: true,
   title: true,
-  userId: true,
+  tag: true,
 });
 
 export const updatePostSchema = createUpdateSchema(posts)
   .pick({
     content: true,
-    description: true,
     title: true,
+    tag: true,
   })
   .partial();
 
