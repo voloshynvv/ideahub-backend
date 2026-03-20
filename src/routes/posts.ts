@@ -25,13 +25,14 @@ postRoutes.get(
   async (c) => {
     const { q, page, limit } = c.req.valid("query");
     const user = c.get("user");
-    const posts = await postsRepository.findAll({
+    const { posts, total } = await postsRepository.findAll({
       q,
       page,
       limit,
       userId: user?.id,
     });
-    return c.json(posts);
+    const pages = Math.ceil(total / limit);
+    return c.json({ posts, pages, page });
   },
 );
 

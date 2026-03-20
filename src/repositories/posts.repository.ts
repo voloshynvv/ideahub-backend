@@ -1,4 +1,4 @@
-import { and, or, desc, eq, ilike } from "drizzle-orm";
+import { and, count, desc, eq, ilike } from "drizzle-orm";
 import { db } from "@/db/index.js";
 import {
   posts,
@@ -19,22 +19,32 @@ export const postsRepository = {
     limit: number;
     userId?: string;
   }) {
-    const rows = await db.query.posts.findMany({
-      with: {
-        user: {
-          columns: {
-            id: true,
-            name: true,
-            image: true,
+    const whereFilter = q ? ilike(posts.title, `%${q}%`) : undefined;
+
+    const countQuery = db
+      .select({ total: count() })
+      .from(posts)
+      .where(whereFilter);
+
+    const [rows, countResult] = await Promise.all([
+      db.query.posts.findMany({
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              image: true,
+            },
           },
+          reactions: true,
         },
-        reactions: true,
-      },
-      where: q ? ilike(posts.title, `%${q}%`) : undefined,
-      orderBy: desc(posts.createdAt),
-      limit: limit,
-      offset: (page - 1) * limit,
-    });
+        where: whereFilter,
+        orderBy: desc(posts.createdAt),
+        limit: limit,
+        offset: (page - 1) * limit,
+      }),
+      countQuery,
+    ]);
 
     const postIds = rows.map((row) => row.id);
     const reactionsByPostId = await reactionsRepository.getPostsReactions(
@@ -42,10 +52,12 @@ export const postsRepository = {
       userId,
     );
 
-    return rows.map((post) => ({
+    const items = rows.map((post) => ({
       ...post,
       reactions: reactionsByPostId[post.id] ?? [],
     }));
+
+    return { posts: items, total: countResult[0].total };
   },
 
   async findById(postId: string, userId?: string) {
