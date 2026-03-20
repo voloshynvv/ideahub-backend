@@ -1,8 +1,9 @@
-```
-npm install
-npm run dev
-```
+Frontend Repo: https://github.com/voloshynvv/ideahub-frontend
 
-```
-open http://localhost:3000
-```
+## Tech Stack
+
+- Hono
+- TypeScript
+- PostgreSQL
+- Drizzle ORM
+- Better Auth
